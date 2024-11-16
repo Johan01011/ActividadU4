@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio de Sesión</title>
+    <link rel="stylesheet" href="Login.css">
+    <link rel="icon" href="/image/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <div class="container">
+        <div class="login-box">
+            <h2>Bienvenido!</h2>
+            <form id="loginForm">
+                <div class="textbox">
+                    <input type="email" placeholder="Correo electrónico" name="correo" required>
+                </div>
+                <div class="textbox">
+                    <input type="password" placeholder="Contraseña" name="contraseña" required>
+                </div>
+                <button type="submit" class="btn">Iniciar Sesión</button>
+                <p class="signup-link">¿No tienes cuenta? <a href="register.html">Crear cuenta</a></p>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Evita el envío del formulario
+            
+            const email = this.correo.value; // Obtiene el valor del correo
+            const password = this.contraseña.value; // Obtiene el valor de la contraseña
+
+            const response = await fetch('http://localhost:3000/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }), // Envía el correo y la contraseña
+            });
+
+            if (response.ok) {
+                const data = await response.json(); // Obtiene los datos de la respuesta
+                localStorage.setItem('token', data.token); // Guarda el token en el almacenamiento local
+                alert('Inicio de sesión exitoso!'); // Mensaje de éxito
+                window.location.href = 'Tienda.html'; // Redirige a la tienda
+            } else {
+                const errorMessage = await response.text(); // Obtiene el mensaje de error
+                alert('Error al iniciar sesión: ' + errorMessage); // Muestra el mensaje de error
+            }
+        });
+    </script>
+</body>
+</html>

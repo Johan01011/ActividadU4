@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil de Usuario</title>
+    <link rel="stylesheet" href="Perfil.css">
+</head>
+<body>
+    <div class="sidebar">
+        <a href="Tienda.html" class="circular-button">
+            <img src="image/Casita.png" alt="Tienda" />
+        </a>        
+        <h2>Hola!</h2>
+        <div class="menu-item" onclick="showSection('perfil')">Mi Perfil</div>
+        <div class="menu-item" onclick="showSection('pedidos')">Pedidos</div>
+        <div class="menu-item" onclick="logout()">Salir</div>
+    </div>
+    <div class="content">
+        <div id="perfil" class="section active">
+            <h3>Mi Perfil Meds a Domicilio</h3>
+            <p>Aquí puedes actualizar tus datos personales.</p>
+            <div class="field">
+                <label for="nombre-usuario">Nombre de usuario</label>
+                <input type="text" id="nombre-usuario" disabled>
+                <p class="error-message" id="nombre-error"></p>
+            </div>
+            <div class="field">
+                <label for="contrasena">Contraseña</label>
+                <input type="password" id="contrasena" disabled>
+                <p class="error-message" id="contrasena-error"></p>
+            </div>
+            <div class="field">
+                <label for="email">Correo electrónico</label>
+                <input type="email" id="email" disabled>
+            </div>
+            <div class="field">
+                <label for="telefono">Teléfono</label>
+                <input type="tel" id="telefono" disabled>
+                <p class="error-message" id="telefono-error"></p>
+            </div>
+            <div class="field">
+                <label for="direccion-envio">Dirección de envío</label>
+                <input type="text" id="direccion-envio" disabled>
+            </div>
+            <button id="editar-perfil" onclick="openEditProfileModal()">Editar Perfil</button>
+            <button id="actualizar-datos" style="display: none;" onclick="validateAndUpdateProfile()">Actualizar Datos</button>
+            <button id="borrar-cuenta" onclick="confirmDeleteAccount()">Borrar Cuenta</button>
+        </div>
+        <div id="pedidos" class="section">
+            <h3>Pedidos</h3>
+            <p>Aquí puedes ver tus pedidos.</p>
+        </div>
+
+        <!-- Modal para confirmación de contraseña -->
+        <div id="confirmacion-modal" style="display: none;">
+            <p>Para editar el perfil, por favor ingresa tu contraseña:</p>
+            <input type="password" id="confirmacion-contrasena">
+            <button onclick="confirmEdit()">Confirmar</button>
+            <button onclick="closeModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Debes iniciar sesión para acceder al perfil.');
+                window.location.href = 'login.html';
+            } else {
+                fetchUserData(token);
+            }
+        });
+
+        function fetchUserData(token) {
+            fetch('http://localhost:3000/user', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('nombre-usuario').value = data.username;
+                document.getElementById('email').value = data.email;
+                document.getElementById('telefono').value = data.phone;
+                document.getElementById('direccion-envio').value = data.address;
+            })
+            .catch(error => alert('Error al cargar los datos del perfil: ' + error.message));
+        }
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+            
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function openEditProfileModal() {
+            document.getElementById('confirmacion-modal').style.display = 'block';
+        }
+
+        function confirmEdit() {
+            const password = document.getElementById('confirmacion-contrasena').value;
+            const token = localStorage.getItem('token');
+
+            fetch('http://localhost:3000/verify-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    enableProfileEditing();
+                    document.getElementById('confirmacion-modal').style.display = 'none';
+                } else {
+                    alert('Contraseña incorrecta.');
+                }
+            })
+            .catch(error => alert('Error al verificar la contraseña: ' + error.message));
+        }
+
+        function enableProfileEditing() {
+            ['nombre-usuario', 'contrasena', 'telefono', 'direccion-envio'].forEach(id => {
+                document.getElementById(id).disabled = false;
+            });
+            document.getElementById('editar-perfil').style.display = 'none';
+            document.getElementById('actualizar-datos').style.display = 'block';
+        }
+
+        function validateAndUpdateProfile() {
+            let isValid = true;
+            
+            document.getElementById('nombre-error').textContent = '';
+            document.getElementById('contrasena-error').textContent = '';
+            document.getElementById('telefono-error').textContent = '';
+
+            const username = document.getElementById('nombre-usuario').value;
+            const password = document.getElementById('contrasena').value;
+            const phone = document.getElementById('telefono').value;
+
+            if (username.length <= 4) {
+                document.getElementById('nombre-error').textContent = 'El nombre debe tener más de 4 caracteres.';
+                isValid = false;
+            }
+
+            if (password.length <= 7) {
+                document.getElementById('contrasena-error').textContent = 'La contraseña debe tener más de 8 caracteres.';
+                isValid = false;
+            }
+
+            if (phone.length !== 10 || isNaN(phone)) {
+                document.getElementById('telefono-error').textContent = 'El teléfono debe tener exactamente 10 dígitos.';
+                isValid = false;
+            }
+
+            if (isValid) {
+                updateProfile();
+            }
+        }
+
+        function updateProfile() {
+            const token = localStorage.getItem('token');
+            const data = {
+                username: document.getElementById('nombre-usuario').value,
+                password: document.getElementById('contrasena').value,
+                phone: document.getElementById('telefono').value,
+                address: document.getElementById('direccion-envio').value
+            };
+
+            fetch('http://localhost:3000/update-profile', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Perfil actualizado exitosamente.');
+                window.location.reload();
+            })
+            .catch(error => alert('Error al actualizar el perfil: ' + error.message));
+        }
+
+        function closeModal() {
+            document.getElementById('confirmacion-modal').style.display = 'none';
+        }
+
+        function logout() {
+            const confirmLogout = confirm('¿Estás seguro de que deseas cerrar sesión?');
+            if (confirmLogout) {
+                localStorage.removeItem('token');
+                window.location.href = 'login.html';
+            }
+        }
+
+        function confirmDeleteAccount() {
+            const password = prompt('Para borrar tu cuenta, ingresa tu contraseña:');
+            if (!password) return;
+
+            const token = localStorage.getItem('token');
+            fetch('http://localhost:3000/verify-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const confirmation = prompt('Si deseas eliminar tu cuenta, escribe "confirmar":');
+                    if (confirmation === 'confirmar') {
+                        deleteAccount();
+                    } else {
+                        alert('La cuenta no ha sido eliminada.');
+                    }
+                } else {
+                    alert('Contraseña incorrecta.');
+                }
+            })
+            .catch(error => alert('Error al verificar la contraseña: ' + error.message));
+        }
+
+        function deleteAccount() {
+            const token = localStorage.getItem('token');
+            fetch('http://localhost:3000/delete-account', {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Cuenta eliminada exitosamente.');
+                    localStorage.removeItem('token');
+                    window.location.href = 'register.html';
+                } else {
+                    response.text().then(text => alert('Error al eliminar la cuenta: ' + text));
+                }
+            })
+            .catch(error => alert('Error al eliminar la cuenta: ' + error.message));
+        }
+    </script>    
+</body>
+</html>

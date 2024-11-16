@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Pedido</title>
+    <link rel="stylesheet" href="Pago.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Botón Eliminar todos los pedidos que redirige a Tienda.html y limpia el carrito -->
+        <button class="back-button" onclick="clearOrderAndGoBack();">Eliminar todos los pedidos</button>
+        <h1>Mi Pedido</h1>
+        <div class="order-container">
+            <div class="product-list">
+                <!-- Los productos se insertarán aquí por JavaScript -->
+            </div>
+
+            <div class="order-summary">
+                <h2>Resumen de compra</h2>
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal-price">$0</span> <!-- Aquí se actualizará el precio del subtotal -->
+                </div>
+                <div class="summary-row">
+                    <span>Gastos del envío</span>
+                    <span class="shipping-cost">Gratis</span> <!-- Aquí se actualizará el costo del envío dinámicamente -->
+                </div>
+                <div class="total-row">
+                    <span>Total</span>
+                    <span id="total-price">$0</span> <!-- Aquí se actualizará el precio total -->
+                </div>
+                <div class="terms">
+                    <input type="checkbox" id="accept-terms">
+                    <label>Acepto <a href="#">políticas de tratamiento de datos</a> y <a href="#">términos y condiciones</a>.</label>
+                </div>
+                <!-- Nuevos botones para opciones de pago -->
+                <button class="pay-button" id="cash-on-delivery" onclick="payOnDelivery()" disabled>Pago contra entrega</button>
+                <button class="pay-button" id="nequi-transfer" onclick="payWithNequi()" disabled>Pago por Nequi</button>
+            </div>
+        </div>
+        
+        <!-- Botón Seguir comprando que redirige a Tienda.html sin limpiar el carrito -->
+        <button class="continue-shopping" onclick="continueShopping();">Seguir comprando</button>
+    </div>
+
+    <script>
+        // Función para limpiar los productos del carrito en 'localStorage' y redirigir a 'Tienda.html'
+        function clearOrderAndGoBack() {
+            const confirmation = confirm("¿Estás seguro de que deseas eliminar todos los pedidos?"); // Alerta de confirmación
+            if (confirmation) {
+                localStorage.removeItem('selectedProducts'); // Limpia el carrito de 'Mi Pedido'
+                window.location.href = 'Tienda.html'; // Redirige a 'Tienda.html'
+            }
+        }
+
+        // Función para redirigir a 'Tienda.html' sin limpiar el carrito
+        function continueShopping() {
+            window.location.href = 'Tienda.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verificar si el token está presente en localStorage
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                // Si no hay token, redirigir al login
+                window.location.href = 'Login.html';
+                return;
+            }
+
+            // Verificar si el token es válido (opcional, depende de cómo gestionas la expiración del token)
+            fetch('/verify-token', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => {
+                if (response.status !== 200) {
+                    // Si el token es inválido o ha expirado, redirigir al login
+                    window.location.href = 'Login.html';
+                } else {
+                    // Si el token es válido, cargar el pedido
+                    const selectedProducts = JSON.parse(localStorage.getItem('selectedProducts'));
+                    if (selectedProducts) {
+                        renderOrderSummary(selectedProducts); // Renderizar los productos
+                    }
+                }
+            })
+            .catch(() => {
+                // En caso de error con la validación del token, redirigir al login
+                window.location.href = 'Login.html';
+            });
+
+            // Obtener los productos seleccionados desde localStorage
+            const selectedProducts = JSON.parse(localStorage.getItem('selectedProducts'));
+
+            if (selectedProducts) {
+                renderOrderSummary(selectedProducts); // Renderizar los productos
+            }
+
+            // Habilitar botones de pago si se aceptan los términos
+            document.getElementById('accept-terms').addEventListener('change', (event) => {
+                const isAccepted = event.target.checked;
+                document.getElementById('cash-on-delivery').disabled = !isAccepted;
+                document.getElementById('nequi-transfer').disabled = !isAccepted;
+            });
+        });
+
+        // Función para actualizar la cantidad de productos en el carrito
+        function updateQuantity(index, change) {
+            const selectedProducts = JSON.parse(localStorage.getItem('selectedProducts'));
+
+            if (selectedProducts) {
+                const product = selectedProducts[index];
+                const newQuantity = product.quantity + change;
+
+                if (newQuantity > 0) {
+                    product.quantity = newQuantity;
+                    localStorage.setItem('selectedProducts', JSON.stringify(selectedProducts));
+                    renderOrderSummary(selectedProducts); // Renderizar nuevamente el resumen de la compra
+                }
+            }
+        }
+
+        // Función para eliminar un producto del carrito
+        function removeProduct(index) {
+            const selectedProducts = JSON.parse(localStorage.getItem('selectedProducts'));
+
+            if (selectedProducts) {
+                selectedProducts.splice(index, 1); // Eliminar el producto de la lista
+                localStorage.setItem('selectedProducts', JSON.stringify(selectedProducts));
+                renderOrderSummary(selectedProducts); // Renderizar nuevamente el resumen de la compra
+            }
+        }
+
+        // Función para renderizar el resumen de la compra
+        function renderOrderSummary(selectedProducts) {
+            let subtotal = 0;
+            let pharmacies = new Set(); // Para almacenar las farmacias únicas
+            const orderContainer = document.querySelector('.order-container .product-list');
+            orderContainer.innerHTML = ''; // Limpiar la lista de productos
+
+            selectedProducts.forEach((product, index) => {
+                const productSubtotal = product.price * product.quantity;
+                subtotal += productSubtotal;
+
+                // Añadir la farmacia al conjunto de farmacias
+                pharmacies.add(product.drogueria);
+
+                // Crear el HTML actualizado con la cantidad, subtotal de cada producto y botón de eliminación
+                const productHTML = `
+                    <div class="product" data-index="${index}">
+                        <img src="${product.imageUrl}" alt="${product.name}" class="product-image">
+                        <div class="product-details">
+                            <h2>${product.name}</h2>
+                            <p>${product.description || ''}</p>
+                            <span class="supplier">Suministrado por ${product.drogueria}</span>
+                        </div>
+                        <div class="product-price">$${parseFloat(product.price).toLocaleString()}</div>
+                        <div class="product-quantity">
+                            <button class="quantity-button decrease">-</button>
+                            <span>${product.quantity}</span>
+                            <button class="quantity-button increase">+</button>
+                        </div>
+                        <div class="product-subtotal">$${productSubtotal.toLocaleString()}</div>
+                        <button class="remove-button" onclick="removeProduct(${index})">✖</button> <!-- Botón de eliminación -->
+                    </div>
+                `;
+                orderContainer.insertAdjacentHTML('beforeend', productHTML);
+            });
+
+            // Calcular los gastos de envío según la cantidad de farmacias
+            let shippingCost = 0;
+            const pharmacyCount = pharmacies.size; // Número de farmacias únicas
+
+            if (pharmacyCount === 1) {
+                shippingCost = 2000;
+            } else if (pharmacyCount === 2) {
+                shippingCost = 4000;
+            } else if (pharmacyCount >= 3) {
+                shippingCost = 6000;
+            }
+
+            // Actualizar el subtotal, los gastos de envío y el total
+            document.getElementById('subtotal-price').textContent = `$${subtotal.toLocaleString()}`;
+            document.getElementById('total-price').textContent = `$${(subtotal + shippingCost).toLocaleString()}`;
+
+            // Actualizar los gastos de envío
+            document.querySelector('.order-summary .summary-row .shipping-cost').textContent = `$${shippingCost.toLocaleString()}`;
+
+            // Re-agregar los eventos de los botones después de renderizar
+            document.querySelectorAll('.product').forEach((productElement, index) => {
+                productElement.querySelector('.increase').addEventListener('click', () => {
+                    updateQuantity(index, 1); // Incrementar cantidad
+                });
+                productElement.querySelector('.decrease').addEventListener('click', () => {
+                    updateQuantity(index, -1); // Decrementar cantidad
+                });
+            });
+        }
+
+        // Funciones para manejar las opciones de pago
+        function payOnDelivery() {
+            alert("Pago contra entrega seleccionado. Se realizará el pago al momento de recibir el pedido.");
+        }
+
+        function payWithNequi() {
+            alert("Pago por transferencia con Nequi seleccionado. A continuación, siga las instrucciones en la app de Nequi.");
+        }
+    </script>
+</body>
+</html>

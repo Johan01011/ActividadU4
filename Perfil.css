@@ -1,0 +1,189 @@
+/* Estilos generales */
+body {
+    font-family: 'Roboto', sans-serif;
+    display: flex;
+    flex-direction: row;
+    background-color: #d7f9f9;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    background-color: #f4fcfd;
+    padding: 20px;
+    border-right: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.sidebar h2 {
+    color: #03333b;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.menu-item {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    text-align: center;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.menu-item.active,
+.menu-item:hover {
+    background-color: #f0f0f0;
+    color: #02848b;
+}
+
+/* Content */
+.content {
+    flex-grow: 1;
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 8px;
+    margin: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.section {
+    display: none;
+}
+
+.section.active {
+    display: block;
+}
+
+/* Formulario */
+.field {
+    margin-bottom: 20px;
+}
+
+.field label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.field input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 15px;
+    color: #333;
+    transition: border-color 0.3s ease;
+}
+
+.field input:disabled {
+    background-color: #f7f7f7;
+}
+
+.field input:focus {
+    border-color: #02848b;
+}
+
+/* Mensajes de error */
+.error-message {
+    color: #d80000;
+    font-size: 14px;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Botones */
+button {
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#editar-perfil {
+    background-color: #02848b;
+    color: #fff;
+    margin-right: 10px;
+}
+
+#editar-perfil:hover {
+    background-color: #045e63;
+}
+
+#actualizar-datos {
+    background-color: #28a745;
+    color: #fff;
+}
+
+#actualizar-datos:hover {
+    background-color: #218838;
+}
+
+/* Modal */
+#confirmacion-modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+}
+
+#confirmacion-modal p {
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+#confirmacion-modal input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+
+#confirmacion-modal button {
+    background-color: #d80000;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 6px;
+    margin: 5px;
+}
+
+#confirmacion-modal button:hover {
+    background-color: #b80000;
+}
+.circular-button {
+    display: inline-block;
+    width: 50px; /* Ajusta el tamaño según tus necesidades */
+    height: 50px; /* Ajusta el tamaño según tus necesidades */
+    border-radius: 50%; /* Hace que el botón sea circular */
+    overflow: hidden; /* Oculta la parte de la imagen que se sale del círculo */
+    text-align: center; /* Centra el contenido */
+    margin-top: 10px; /* Espaciado superior */
+    position: relative; /* Para posicionar la imagen correctamente */
+}
+
+.circular-button img {
+    width: 100%; /* Ajusta la imagen al tamaño del botón */
+    height: auto; /* Mantiene la proporción de la imagen */
+}

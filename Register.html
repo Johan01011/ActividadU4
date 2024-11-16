@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Cuenta</title>
+    <link rel="stylesheet" href="Login.css">
+    <style>
+        .error-message {
+            color: red;
+            font-size: 12px;
+            display: none; /* Oculta por defecto */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="login-box">
+            <button class="back-button" onclick="window.location.href='login.html'">
+                <img src="image/Regresar.png" alt="Regresar" title="Regresar a Login">
+            </button>
+            <h2>Crear Cuenta</h2>
+            <form id="register-form">
+                <div class="textbox">
+                    <input type="text" id="username" placeholder="Nombre de usuario" name="username" required>
+                    <div id="username-error" class="error-message">El nombre de usuario debe tener al menos 4 caracteres.</div>
+                    <div id="username-exists-error" class="error-message">Este nombre de usuario ya está en uso.</div>
+                </div>
+                <div class="textbox">
+                    <input type="password" id="password" placeholder="Contraseña" name="password" required>
+                    <div id="password-error" class="error-message">La contraseña debe tener al menos 8 caracteres.</div>
+                </div>
+                <div class="textbox">
+                    <input type="email" id="email" placeholder="Correo electrónico" name="email" required>
+                    <div id="email-error" class="error-message">El correo debe ser válido (Ejemplo usuario@gmail.com).</div>
+                </div>
+                <div class="textbox">
+                    <input type="tel" id="phone" placeholder="Teléfono" name="phone" required>
+                    <div id="phone-error" class="error-message">El número de teléfono debe tener exactamente 10 dígitos.</div>
+                    <div id="phone-exists-error" class="error-message">Este número de teléfono ya está registrado.</div>
+                </div>
+                <div class="textbox">
+                    <input type="text" placeholder="Dirección de envío (Ej: 'Barrio' 'CRA. 10 # 10 - 10')" name="address" required>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="terms-checkbox" name="terms" required>
+                    <label for="terms-checkbox">Acepto los <a href="#">términos y condiciones</a></label>
+                </div>
+                <button type="submit" class="btn">Continuar</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('register-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            clearErrors(); // Limpia los errores anteriores
+
+            const username = this.username.value;
+            const password = this.password.value;
+            const email = this.email.value;
+            const phone = this.phone.value;
+            const address = this.address.value;
+
+            let errorList = []; // Lista de errores
+
+            // Validaciones del formulario
+            if (username.length < 4) errorList.push('username-error');
+            if (password.length < 8) errorList.push('password-error');
+
+            const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!emailPattern.test(email)) errorList.push('email-error');
+
+            const phonePattern = /^\d{10}$/;
+            if (!phonePattern.test(phone)) errorList.push('phone-error');
+
+            // Si hay errores del formulario, los muestra y detiene el envío
+            if (errorList.length > 0) {
+                showErrors(errorList);
+                return;
+            }
+
+            // Envío de datos al servidor si no hay errores locales
+            try {
+                const response = await fetch('http://localhost:3000/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, email, phone, address }),
+                });
+
+                const result = await response.json();
+
+                // Manejo de errores del servidor (conflictos)
+                if (response.status === 409) {
+                    let serverErrorList = [];
+
+                    if (result.field === 'username') serverErrorList.push('username-exists-error');
+                    if (result.field === 'phone') serverErrorList.push('phone-exists-error');
+
+                    showErrors(serverErrorList);
+
+                } else if (response.ok) {
+                    alert('Registro exitoso!');
+                    window.location.href = 'login.html';
+                } else {
+                    alert('Error al registrar el usuario: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error de conexión con el servidor: ' + error.message);
+            }
+        });
+
+        // Función para mostrar múltiples errores a la vez
+        function showErrors(errors) {
+            errors.forEach(errorId => {
+                document.getElementById(errorId).style.display = 'block';
+            });
+        }
+
+        // Limpia todos los mensajes de error
+        function clearErrors() {
+            document.querySelectorAll('.error-message').forEach(msg => msg.style.display = 'none');
+        }
+    </script>
+</body>
+</html>

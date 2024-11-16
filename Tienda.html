@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meds a Domicilio</title>
+    <link rel="stylesheet" href="Tienda.css">
+</head>
+<body>
+    <header>
+        <img src="image/Logo.png" alt="Meds a Domicilio" class="logo" width="150" height="auto">
+        <div class="search-container">
+            <div class="categories-btn" onclick="toggleDropdown()">Categorías
+                <div class="dropdown" id="dropdown">
+                    <a href="#" onclick="filterByCategory('salud')">Salud</a>
+                    <a href="#" onclick="filterByCategory('belleza')">Belleza</a>
+                    <a href="#" onclick="filterByCategory('cuidado_personal')">Cuidado personal</a>
+                    <a href="#" onclick="filterByCategory('cuidado_bebe')">Cuidado del bebé</a>
+                </div>
+            </div>
+            <input type="text" id="search-input" placeholder="Buscar productos..." onkeyup="searchProducts()">
+            <button class="cart-btn" onclick="toggleCartModal()">
+                <img src="image/Carrito.png" alt="Carrito">
+                <span id="cart-count" class="cart-count" style="display: none;">0</span> <!-- Contador de productos -->
+            </button>                        
+        </div>
+        <img src="image/Cuenta.png" alt="Cuenta" class="account-btn" onclick="toggleAccountDropdown()">
+        <div class="account-dropdown" id="account-dropdown">
+            <a href="Perfil.html">Perfil</a>
+            <a href="login.html" id="logout">Cerrar sesión</a>
+        </div>
+    </header>
+
+    <div class="products-container" id="products-container">
+    </div>
+
+    <footer>
+        <div style="text-align: left;">
+            <p>Meds a Domicilio</p>
+        </div>
+        <div style="text-align: center;">
+            <p>Contáctanos:Bolívar, San Juan Nepomuceno  Teléfono:3013487536 </p>
+        </div>
+        <div style="text-align: right;">
+            <a href="quienes-somos.html">¿Quiénes somos?</a>
+        </div>
+    </footer>
+    
+    <div id="cart-modal" class="cart-modal">
+        <div class="cart-modal-content">
+            <span class="close" onclick="toggleCartModal()">&times;</span>
+            <h2>Carrito de Compras</h2>
+            <div class="cart-products-container">
+                <table id="cart-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Producto</th>
+                        <th>Precio</th>
+                        <th>Cantidad</th>
+                        <th>Subtotal</th>
+                        <th>Droguería</th>
+                        <th>Eliminar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Aquí se generarán las filas dinámicamente -->
+                </tbody>
+            </table>
+            <h3 id="total-price">Total: $0</h3> <!-- Nueva línea para el total -->
+        </div>
+    </div>    
+
+    <script src="Tienda.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrativo</title>
+    <link rel="stylesheet" href="admin-panel.css">
+</head>
+<body>
+    <div class="container">
+        <button id="logout" class="back-button">Cerrar sesión</button>
+        
+        <h2 class="title">Pedidos</h2>
+        
+        <div class="orders-list">
+            <!-- Aquí se mostrarán los pedidos -->
+        </div>
+    </div>
+
+    <script>
+        // Función para cerrar sesión
+        document.getElementById('logout').addEventListener('click', () => {
+            localStorage.removeItem('admin_token'); // Eliminar el token guardado
+            window.location.href = '/admin'; // Redirigir al login de administrador
+        });
+
+        // Funcionalidad para mostrar pedidos (pendiente de implementación)
+        document.getElementById('orders').addEventListener('click', () => {
+            alert("Aquí se mostrarían los pedidos, pero aún no se implementa esta funcionalidad.");
+        });
+    </script>
+</body>
+</html>
